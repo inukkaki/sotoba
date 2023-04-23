@@ -29,7 +29,7 @@ class Window:
         canvas.grid(column=0, row=0, sticky=("n", "w", "e", "s"))
         self.gfx = Graphics(canvas, self.scale)
 
-        self.controller = Controller(self.root)
+        self.controller = Controller(self.root, self.gfx)
 
     def resize(self, scale: float, width: int, height: int) -> None:
         self.scale = scale
