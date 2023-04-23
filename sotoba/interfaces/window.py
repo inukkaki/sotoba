@@ -4,6 +4,12 @@ from sotoba.interfaces.control import Controller
 from sotoba.interfaces.graphics import Graphics
 
 
+TITLE = "sotoba"
+
+WINDOW_WIDTH = 352
+WINDOW_HEIGHT = 240
+
+
 # Resolve the blurriness of the window (Windows 10)
 try:
     from ctypes import windll
@@ -15,12 +21,13 @@ except ImportError:
 class Window:
     def __init__(self, root: tk.Tk, scale: float = 2.0) -> None:
         self.root = root
-        self.root.title("sotoba")
+        self.root.title(TITLE)
+        self.root.resizable(width=False, height=False)
 
         self.scale = ...
         self.width = ...
         self.height = ...
-        self.resize(scale, 352, 240)
+        self.resize(scale, WINDOW_WIDTH, WINDOW_HEIGHT)
 
         canvas_width = int(self.scale * self.width)
         canvas_height = int(self.scale * self.height)
