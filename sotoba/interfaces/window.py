@@ -1,5 +1,6 @@
 import tkinter as tk
 
+from sotoba.interfaces.control import Controller
 from sotoba.interfaces.graphics import Graphics
 
 
@@ -27,6 +28,8 @@ class Window:
                            bg="black", borderwidth=0, highlightthickness=0)
         canvas.grid(column=0, row=0, sticky=("n", "w", "e", "s"))
         self.gfx = Graphics(canvas, self.scale)
+
+        self.controller = Controller(self.root)
 
     def resize(self, scale: float, width: int, height: int) -> None:
         self.scale = scale
