@@ -15,3 +15,27 @@ class Graphics:
         item_id = self.cvs.create_rectangle(x0, y0, x1, y1, outline=outline,
                                             fill=fill)
         return item_id
+
+    def add_text(self, x: float, y: float, text: str, anchor: str = "nw",
+                 color: str = "white") -> int:
+        if anchor != "center":
+            if "s" in anchor:
+                y0 = self.scale*(y + 1) - 1
+            else:
+                y0 = self.scale * y
+            if "e" in anchor:
+                x0 = self.scale*(x + 1) - 1
+            else:
+                x0 = self.scale * x
+        else:
+            x0 = self.scale * x
+            y0 = self.scale * y
+        item_id = self.cvs.create_text(x0, y0, text=text, anchor=anchor,
+                                       fill=color)
+        return item_id
+
+    def delete_item(self, item_id: int) -> None:
+        self.cvs.delete(item_id)
+
+    def configure(self, item_id: int, **kwargs) -> None:
+        self.cvs.itemconfigure(item_id, **kwargs)
