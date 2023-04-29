@@ -4,7 +4,7 @@ import time
 import tkinter as tk
 
 from sotoba.interfaces.graphics import Graphics
-from sotoba.models import entities
+from sotoba.models.entities import PlayableEntity
 
 
 FRAME_RATE = 60
@@ -31,7 +31,7 @@ class Controller:
         self.key_detector = KeyDetector(self.root)
 
         # [!] just for debugging
-        self.player = entities.Playable(self.gfx, 1, 112)
+        self.player = PlayableEntity(self.gfx, x=1.0, y=112.0)
 
     def start(self) -> None:
         if not self.is_alive:
@@ -74,10 +74,11 @@ class Controller:
         dtkl = detected_keys_locked
 
         # [!] just for debugging
-        self.player.operate(dtkl)
+        self.player.update(detected_keys=dtkl)
 
         # Update some instances
-        self.debug_screen.change_info(detected_keys=dtkl)
+        self.debug_screen.change_info(detected_keys=dtkl,
+                                      player_info=self.player.info)
         self.key_detector.update()
 
         # Update the window
@@ -139,7 +140,9 @@ class DebugScreen:
     def __init__(self, graphics: Graphics) -> None:
         self.gfx = graphics
 
-        self.info = {"frame_rate": None, "detected_keys": None}
+        self.info = {
+            "frame_rate": None, "detected_keys": None, "player_info": None
+        }
         self.text = self.gfx.add_text(0, 0, self.info_str)
 
     @property
@@ -160,7 +163,14 @@ class DebugScreen:
             product += ("..." + 3*"\n")
         product += "\n"
 
-        product += "player's info..."
+        product += "PLAYER\n"
+        if self.info["player_info"] != None:
+            player_info = self.info["player_info"]
+            position = player_info["position"]
+            for variable_name in position:
+                scale = 1e3 if position[variable_name] < 1.0 else 1e1
+                value = int(scale * position[variable_name]) / scale
+                product += f"{variable_name}: {value}\n"
 
         return product
 
