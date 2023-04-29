@@ -19,7 +19,7 @@ except ImportError:
 
 
 class Window:
-    def __init__(self, root: tk.Tk, scale: float = 2.0) -> None:
+    def __init__(self, root: tk.Tk, scale: int = 2) -> None:
         self.root = root
         self.root.title(TITLE)
         self.root.resizable(width=False, height=False)
@@ -29,8 +29,8 @@ class Window:
         self.height = ...
         self.resize(scale, WINDOW_WIDTH, WINDOW_HEIGHT)
 
-        canvas_width = int(self.scale * self.width)
-        canvas_height = int(self.scale * self.height)
+        canvas_width = self.scale * self.width
+        canvas_height = self.scale * self.height
         canvas = tk.Canvas(self.root, width=canvas_width, height=canvas_height,
                            bg="black", borderwidth=0, highlightthickness=0)
         canvas.grid(column=0, row=0, sticky=("n", "w", "e", "s"))
@@ -38,13 +38,13 @@ class Window:
 
         self.controller = Controller(self.root, self.gfx)
 
-    def resize(self, scale: float, width: int, height: int) -> None:
+    def resize(self, scale: int, width: int, height: int) -> None:
         self.scale = scale
         self.width = width
         self.height = height
 
-        new_width = int(self.scale * self.width)
-        new_height = int(self.scale * self.height)
+        new_width = self.scale * self.width
+        new_height = self.scale * self.height
         x = (self.root.winfo_screenwidth() - new_width) // 2
         y = (self.root.winfo_screenheight() - new_height) // 2
         new_geometry = f"{new_width}x{new_height}+{x}+{y}"

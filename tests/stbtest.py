@@ -16,9 +16,9 @@ def main() -> int:
     root.mainloop()
 
     if window.controller.task_thread.is_alive():
-        print(window.controller.is_alive)
+        print("ctrl:", window.controller.is_alive)
         window.controller.task_thread.join()
-    print(window.controller.task_thread.is_alive())
+    print("thrd:", window.controller.task_thread.is_alive())
 
     return 0
 

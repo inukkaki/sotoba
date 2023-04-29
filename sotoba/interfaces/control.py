@@ -4,6 +4,7 @@ import time
 import tkinter as tk
 
 from sotoba.interfaces.graphics import Graphics
+from sotoba.models import entities
 
 
 FRAME_RATE = 60
@@ -28,6 +29,9 @@ class Controller:
         self.debug_screen = DebugScreen(self.gfx)
 
         self.key_detector = KeyDetector(self.root)
+
+        # [!] just for debugging
+        self.player = entities.Playable(self.gfx, 1, 112)
 
     def start(self) -> None:
         self.fr_counter.start()
@@ -68,10 +72,13 @@ class Controller:
         detected_keys_locked = copy.deepcopy(self.key_detector.detected_keys)
         dtkl = detected_keys_locked
 
+        # [!] just for debugging
+        self.player.operate(dtkl)
+
         # Update the key detector
-        self.debug_screen.change_info(pressed_keys=dtkl["pressed"])
-        self.debug_screen.change_info(released_keys=dtkl["released"])
-        self.debug_screen.change_info(remaining_keys=dtkl["remaining"])
+        self.debug_screen.change_info(pressed_keys=dtkl["pressed"],
+                                      released_keys=dtkl["released"],
+                                      remaining_keys=dtkl["remaining"])
         self.key_detector.update()
 
         # Update the window
@@ -91,15 +98,16 @@ class KeyDetector:
         self.root.bind("<KeyRelease>", self.release_key)
 
     def press_key(self, event: tk.Event) -> None:
-        key_symbol = event.keysym
-        if key_symbol not in self.detected_keys["remaining"]:
-            self.detected_keys["pressed"].add(key_symbol)
-        self.detected_keys["remaining"].add(key_symbol)
+        key_code = event.keycode
+        # Prevent a key from being pressed serially
+        if key_code not in self.detected_keys["remaining"]:
+            self.detected_keys["pressed"].add(key_code)
+        self.detected_keys["remaining"].add(key_code)
 
     def release_key(self, event: tk.Event) -> None:
-        key_symbol = event.keysym
-        self.detected_keys["released"].add(key_symbol)
-        self.detected_keys["remaining"].remove(key_symbol)
+        key_code = event.keycode
+        self.detected_keys["released"].add(key_code)
+        self.detected_keys["remaining"].remove(key_code)
 
     def update(self) -> None:
         self.detected_keys["pressed"].clear()
@@ -153,7 +161,7 @@ class DebugScreen:
             if len(detected_keys) == 0:
                 product += "--\n"
                 continue
-            product += f"{', '.join(detected_keys)}\n"
+            product += f"{', '.join(map(str, detected_keys))}\n"
 
         return product
 
