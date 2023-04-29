@@ -20,7 +20,7 @@ class Controller:
         self.gfx = graphics
 
         self.is_alive = True
-        self.task_state = "free"
+        self.is_busy = False
         self.task_thread = threading.Thread(target=self.loop)
         self.root.protocol("WM_DELETE_WINDOW", self.terminate)
 
@@ -34,10 +34,14 @@ class Controller:
         self.player = entities.Playable(self.gfx, 1, 112)
 
     def start(self) -> None:
+        if not self.is_alive:
+            raise RuntimeError("This controller is not alive.")
         self.fr_counter.start()
         self.task_thread.start()
 
     def terminate(self) -> None:
+        if not self.is_alive:
+            raise RuntimeError("This controller is already terminated.")
         self.is_alive = False
         self.root.after_idle(self.root.quit)
 
@@ -46,11 +50,8 @@ class Controller:
             start_time = TIMER_FUNCTION()
 
             # Wait if self.update is already running
-            if self.task_state == "busy":
-                while self.is_alive:
-                    if self.task_state == "free":
-                        break
-                    time.sleep(MIN_SLEEP_TIME)
+            while self.is_alive and self.is_busy:
+                time.sleep(MIN_SLEEP_TIME)
 
             # Calculate the measured value of frame rate
             actual_frame_rate = self.fr_counter.calculate_frame_rate()
@@ -66,7 +67,7 @@ class Controller:
             time.sleep(sleep_time)
 
     def update(self) -> None:
-        self.task_state = "busy"
+        self.is_busy = True
 
         # Capture the current state of sets of detected keys
         detected_keys_locked = copy.deepcopy(self.key_detector.detected_keys)
@@ -75,16 +76,14 @@ class Controller:
         # [!] just for debugging
         self.player.operate(dtkl)
 
-        # Update the key detector
-        self.debug_screen.change_info(pressed_keys=dtkl["pressed"],
-                                      released_keys=dtkl["released"],
-                                      remaining_keys=dtkl["remaining"])
+        # Update some instances
+        self.debug_screen.change_info(detected_keys=dtkl)
         self.key_detector.update()
 
         # Update the window
         self.root.update_idletasks()
 
-        self.task_state = "free"
+        self.is_busy = False
 
 
 class KeyDetector:
@@ -140,10 +139,7 @@ class DebugScreen:
     def __init__(self, graphics: Graphics) -> None:
         self.gfx = graphics
 
-        self.info = {
-            "frame_rate": None, "pressed_keys": None, "released_keys": None,
-            "remaining_keys": None
-        }
+        self.info = {"frame_rate": None, "detected_keys": None}
         self.text = self.gfx.add_text(0, 0, self.info_str)
 
     @property
@@ -151,17 +147,20 @@ class DebugScreen:
         frame_rate = self.info["frame_rate"]
         product = f"{frame_rate} FPS\n" if frame_rate != None else "-- FPS\n"
 
-        key_tags = ["pressed_keys", "released_keys", "remaining_keys"]
-        for kind_of_detected_keys in key_tags:
-            detected_keys = self.info[kind_of_detected_keys]
-            product += f"{kind_of_detected_keys[0:3]}: "
-            if detected_keys == None:
-                product += "--\n"
-                continue
-            if len(detected_keys) == 0:
-                product += "--\n"
-                continue
-            product += f"{', '.join(map(str, detected_keys))}\n"
+        if self.info["detected_keys"] != None:
+            detected_keys = self.info["detected_keys"]
+            for kind_of_detected_keys in detected_keys:
+                key_set = detected_keys[kind_of_detected_keys]
+                product += f"{kind_of_detected_keys[:3]}: "
+                if len(key_set) == 0:
+                    product += "--\n"
+                    continue
+                product += f"{', '.join(map(str, key_set))}\n"
+        else:
+            product += ("..." + 3*"\n")
+        product += "\n"
+
+        product += "player's info..."
 
         return product
 
